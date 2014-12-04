@@ -23,22 +23,22 @@
 
 #define INFTIM 1000
 
-//Ïß³Ì³ØÈÎÎñ¶ÓÁĞ½á¹¹Ìå
+//çº¿ç¨‹æ± ä»»åŠ¡é˜Ÿåˆ—ç»“æ„ä½“
 struct task{
-    int fd;            //ĞèÒª¶ÁĞ´µÄÎÄ¼şÃèÊö·û
-    struct task *next; //ÏÂÒ»¸öÈÎÎñ
+    int fd;            //éœ€è¦è¯»å†™çš„æ–‡ä»¶æè¿°ç¬¦
+    struct task *next; //ä¸‹ä¸€ä¸ªä»»åŠ¡
 };
-//ÓÃÓÚ±£´æÏò¿Í»§¶Ë·¢ËÍÒ»´ÎÏûÏ¢ËùĞèµÄÏà¹ØÊı¾İ
+//ç”¨äºä¿å­˜å‘å®¢æˆ·ç«¯å‘é€ä¸€æ¬¡æ¶ˆæ¯æ‰€éœ€çš„ç›¸å…³æ•°æ®
 struct user_data{
     int fd;
     unsigned int n_size;
     char line[MAXLINE];
 };
-//Ïß³ÌµÄÈÎÎñº¯Êı
+//çº¿ç¨‹çš„ä»»åŠ¡å‡½æ•°
 void * readtask(void *args);
 void * writetask(void *args);
 
-//ÉùÃ÷epoll_event½á¹¹ÌåµÄ±äÁ¿,evÓÃÓÚ×¢²áÊÂ¼ş,Êı×éÓÃÓÚ»Ø´«Òª´¦ÀíµÄÊÂ¼ş
+//å£°æ˜epoll_eventç»“æ„ä½“çš„å˜é‡,evç”¨äºæ³¨å†Œäº‹ä»¶,æ•°ç»„ç”¨äºå›ä¼ è¦å¤„ç†çš„äº‹ä»¶
 struct epoll_event ev,events[MAX_EVENTS];
 int epfd;
 pthread_mutex_t mutex;
@@ -73,7 +73,7 @@ int main()
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond1, NULL);
     
-    //³õÊ¼»¯ÓÃÓÚ¶ÁÏß³Ì³ØµÄÏß³Ì£¬¿ªÆôÁ½¸öÏß³ÌÀ´Íê³ÉÈÎÎñ£¬Á½¸öÏß³Ì»á»¥³âµØ·ÃÎÊÈÎÎñÁ´±í
+    //åˆå§‹åŒ–ç”¨äºè¯»çº¿ç¨‹æ± çš„çº¿ç¨‹ï¼Œå¼€å¯ä¸¤ä¸ªçº¿ç¨‹æ¥å®Œæˆä»»åŠ¡ï¼Œä¸¤ä¸ªçº¿ç¨‹ä¼šäº’æ–¥åœ°è®¿é—®ä»»åŠ¡é“¾è¡¨
     pthread_create(&tid1, NULL, readtask, NULL);
     pthread_create(&tid2, NULL, readtask, NULL);
 
@@ -82,7 +82,7 @@ int main()
     
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    setnonblocking(listenfd);    //°ÑsocketÉèÖÃÎª·Ç×èÈû·½Ê½
+    setnonblocking(listenfd);    //æŠŠsocketè®¾ç½®ä¸ºéé˜»å¡æ–¹å¼
 
     bzero(&serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
@@ -95,14 +95,14 @@ int main()
         printf("BIND failed!\n");
         exit(-1);
     }
-    //¿ªÊ¼¼àÌı
+    //å¼€å§‹ç›‘å¬
     if(listen(listenfd, LISTENQ))
     {
         printf("Listen failed!\n");
         exit(-1);
     }
 
-    //Éú³ÉÓÃÓÚ´¦ÀíacceptµÄepoll×¨ÓÃµÄÎÄ¼şÃèÊö·û
+    //ç”Ÿæˆç”¨äºå¤„ç†acceptçš„epollä¸“ç”¨çš„æ–‡ä»¶æè¿°ç¬¦
     epfd = epoll_create(MAX_FDS);
     if(epfd==-1) {
         printf("epoll_create error %d\n",errno);
@@ -114,24 +114,23 @@ int main()
     epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &ev);
 
     while(1) {
-        //µÈ´ıepollÊÂ¼şµÄ·¢Éú
+        //ç­‰å¾…epolläº‹ä»¶çš„å‘ç”Ÿ
         nfds=epoll_wait(epfd, events, MAX_EVENTS, 500);
         if(nfds == 0) 
-		{
+	{
             continue;
-        }
-            
+        ï½
         if(nfds < 0) 
-		{
+	{
             printf("epoll_wait error %d\n",errno);
             exit(-1);
-		}
+	}
 
-        //´¦ÀíËù·¢ÉúµÄËùÓĞÊÂ¼ş
+        //å¤„ç†æ‰€å‘ç”Ÿçš„æ‰€æœ‰äº‹ä»¶
         for(i=0; i < nfds; ++i)
         {
-            //ÕâÀï½«¼àÌıÌ×½Ó×ÖÍ¬Á¬½ÓÌ×½Ó×Ö·ÅÔÚÁËÒ»Æğ£¬ÕâÑùµ¼ÖÂÃ¿´Î¶¼ÒªÂÖÑ¯²ÅÄÜ»ñµÃ¼àÌıÌ×½Ó×Ö£¬¶ÔÆäÊ¹ÓÃ
-            //acceptµ÷ÓÃ±ã¿É»ñµÃĞÂµÄÁ¬½ÓÌ×½Ó×Ö£¬Èç¹ûÄÜ½«¼àÌı¶¯×÷·Åµ½ÁíÍâÒ»¸öÏß³ÌÖĞ¾ÍºÃÁË
+            //è¿™é‡Œå°†ç›‘å¬å¥—æ¥å­—åŒè¿æ¥å¥—æ¥å­—æ”¾åœ¨äº†ä¸€èµ·ï¼Œè¿™æ ·å¯¼è‡´æ¯æ¬¡éƒ½è¦è½®è¯¢æ‰èƒ½è·å¾—ç›‘å¬å¥—æ¥å­—ï¼Œå¯¹å…¶ä½¿ç”¨
+            //acceptè°ƒç”¨ä¾¿å¯è·å¾—æ–°çš„è¿æ¥å¥—æ¥å­—ï¼Œå¦‚æœèƒ½å°†ç›‘å¬åŠ¨ä½œæ”¾åˆ°å¦å¤–ä¸€ä¸ªçº¿ç¨‹ä¸­å°±å¥½äº†
             if(events[i].data.fd==listenfd)
             {
                 connfd = accept(listenfd,(sockaddr *)&clientaddr, &clilen);
@@ -143,12 +142,12 @@ int main()
 
                 //printf("Connect from %s:%d\n",inet_ntoa(clientaddr.sin_addr),htons(clientaddr.sin_port));
 
-                //ÉèÖÃÓÃÓÚ¶Á²Ù×÷µÄÎÄ¼şÃèÊö·û
+                //è®¾ç½®ç”¨äºè¯»æ“ä½œçš„æ–‡ä»¶æè¿°ç¬¦
                 ev.data.fd=connfd;
                 ev.events=EPOLLIN | EPOLLET;
                 epoll_ctl(epfd, EPOLL_CTL_ADD, connfd, &ev);
             }
-            else if(events[i].events & EPOLLIN)
+            if(events[i].events & EPOLLIN)
             {
                 if ( (sockfd = events[i].data.fd) < 0) 
                     continue;
@@ -162,7 +161,7 @@ int main()
                 new_task->fd =sockfd;
                 new_task->next = NULL;
 
-                //Ìí¼ÓĞÂµÄ¶ÁÈÎÎñ
+                //æ·»åŠ æ–°çš„è¯»ä»»åŠ¡
                 pthread_mutex_lock(&mutex);
                 if(readhead == NULL)
                 {
@@ -174,10 +173,10 @@ int main()
                     readtail->next = new_task;
                     readtail = new_task;
                 }
-                pthread_cond_broadcast(&cond1);	//»½ĞÑËùÓĞµÈ´ıcond1Ìõ¼şµÄÏß³Ì
+                pthread_cond_broadcast(&cond1);	//å”¤é†’æ‰€æœ‰ç­‰å¾…cond1æ¡ä»¶çš„çº¿ç¨‹
                 pthread_mutex_unlock(&mutex);
             }
-            else if(events[i].events & EPOLLOUT)
+            if(events[i].events & EPOLLOUT)
             {
                 rdata=(struct user_data *)events[i].data.ptr;
                 sockfd = rdata->fd;
@@ -188,7 +187,7 @@ int main()
                     rdata=NULL;
                 }
 
-                //ÉèÖÃÓÃÓÚ¶Á²Ù×÷µÄÎÄ¼şÃèÊö·û
+                //è®¾ç½®ç”¨äºè¯»æ“ä½œçš„æ–‡ä»¶æè¿°ç¬¦
                 ev.data.fd=sockfd;
                 ev.events=EPOLLIN | EPOLLET;
                 epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
@@ -201,26 +200,26 @@ void* readtask(void *args)
 {
     int fd=-1;
     unsigned int n;
-    //ÓÃÓÚ°Ñ¶Á³öÀ´µÄÊı¾İ´«µİ³öÈ¥
+    //ç”¨äºæŠŠè¯»å‡ºæ¥çš„æ•°æ®ä¼ é€’å‡ºå»
     struct user_data *data = NULL;
 
     while(1){
-        //»¥³â·ÃÎÊÈÎÎñ¶ÓÁĞ
+        //äº’æ–¥è®¿é—®ä»»åŠ¡é˜Ÿåˆ—
         pthread_mutex_lock(&mutex);
-        //µÈ´ıÖ±µ½ÈÎÎñ¶ÓÁĞ²»Îª¿Õ
-        //Õâ¸öwhileÒªÌØ±ğËµÃ÷Ò»ÏÂ£¬µ¥¸öpthread_cond_wait¹¦ÄÜºÜÍêÉÆ£¬ÎªºÎÕâÀïÒªÓĞÒ»¸öwhile (head == NULL)ÄØ£¿
-        //ÒòÎªpthread_cond_waitÀïµÄÏß³Ì¿ÉÄÜ»á±»ÒâÍâ»½ĞÑ£¬Èç¹ûÕâ¸öÊ±ºòhead != NULL£¬Ôò²»ÊÇÎÒÃÇÏëÒªµÄÇé¿ö¡£
-        //Õâ¸öÊ±ºò£¬Ó¦¸ÃÈÃÏß³Ì¼ÌĞø½øÈëpthread_cond_wait  
+        //ç­‰å¾…ç›´åˆ°ä»»åŠ¡é˜Ÿåˆ—ä¸ä¸ºç©º
+        //è¿™ä¸ªwhileè¦ç‰¹åˆ«è¯´æ˜ä¸€ä¸‹ï¼Œå•ä¸ªpthread_cond_waitåŠŸèƒ½å¾ˆå®Œå–„ï¼Œä¸ºä½•è¿™é‡Œè¦æœ‰ä¸€ä¸ªwhile (head == NULL)å‘¢ï¼Ÿ
+        //å› ä¸ºpthread_cond_waité‡Œçš„çº¿ç¨‹å¯èƒ½ä¼šè¢«æ„å¤–å”¤é†’ï¼Œå¦‚æœè¿™ä¸ªæ—¶å€™head != NULLï¼Œåˆ™ä¸æ˜¯æˆ‘ä»¬æƒ³è¦çš„æƒ…å†µã€‚
+        //è¿™ä¸ªæ—¶å€™ï¼Œåº”è¯¥è®©çº¿ç¨‹ç»§ç»­è¿›å…¥pthread_cond_wait  
         while(readhead == NULL) {
-            pthread_cond_wait(&cond1, &mutex); //Ïß³Ì×èÈû£¬ÊÍ·Å»¥³âËø£¬µ±µÈ´ıµÄÌõ¼şµÈµ½Âú×ãÊ±£¬Ëü»áÔÙ´Î»ñµÃ»¥³âËø
-            // pthread_cond_wait»áÏÈ½â³ıÖ®Ç°µÄpthread_mutex_lockËø¶¨µÄmtx£¬
-            // È»ºó×èÈûÔÚµÈ´ı¶ÔÁĞÀïĞİÃß£¬Ö±µ½ÔÙ´Î±»»½ĞÑ£¨´ó¶àÊıÇé¿öÏÂÊÇµÈ´ıµÄÌõ¼ş³ÉÁ¢¶ø±»»½ĞÑ£¬
-            // »½ĞÑºó£¬¸Ã½ø³Ì»áÏÈËø¶¨ÏÈpthread_mutex_lock(&mtx);£¬ÔÙ¶ÁÈ¡×ÊÔ´  
+            pthread_cond_wait(&cond1, &mutex); //çº¿ç¨‹é˜»å¡ï¼Œé‡Šæ”¾äº’æ–¥é”ï¼Œå½“ç­‰å¾…çš„æ¡ä»¶ç­‰åˆ°æ»¡è¶³æ—¶ï¼Œå®ƒä¼šå†æ¬¡è·å¾—äº’æ–¥é”
+            // pthread_cond_waitä¼šå…ˆè§£é™¤ä¹‹å‰çš„pthread_mutex_locké”å®šçš„mtxï¼Œ
+            // ç„¶åé˜»å¡åœ¨ç­‰å¾…å¯¹åˆ—é‡Œä¼‘çœ ï¼Œç›´åˆ°å†æ¬¡è¢«å”¤é†’ï¼ˆå¤§å¤šæ•°æƒ…å†µä¸‹æ˜¯ç­‰å¾…çš„æ¡ä»¶æˆç«‹è€Œè¢«å”¤é†’ï¼Œ
+            // å”¤é†’åï¼Œè¯¥è¿›ç¨‹ä¼šå…ˆé”å®šå…ˆpthread_mutex_lock(&mtx);ï¼Œå†è¯»å–èµ„æº  
         }
 
         fd = readhead->fd;
 
-        //´ÓÈÎÎñ¶ÓÁĞÈ¡³öÒ»¸ö¶ÁÈÎÎñ
+        //ä»ä»»åŠ¡é˜Ÿåˆ—å–å‡ºä¸€ä¸ªè¯»ä»»åŠ¡
         struct task *tmp = readhead;
         readhead = readhead->next;
         if(tmp){
@@ -239,13 +238,13 @@ void* readtask(void *args)
         if ( (n = read(fd, data->line, MAXLINE)) > 0) {
 
             data->n_size = n;
-            //ÉèÖÃĞèÒª´«µİ³öÈ¥µÄÊı¾İ
+            //è®¾ç½®éœ€è¦ä¼ é€’å‡ºå»çš„æ•°æ®
             ev.data.ptr = data;
             ev.events = EPOLLOUT | EPOLLET;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &ev);//ĞŞ¸ÄsockfdÉÏÒª´¦ÀíµÄÊÂ¼şÎªEPOLLOUT£¬Õâ½«µ¼ÖÂÊı¾İ±»·¢»Ø¿Í»§¶Ë£¨ÔÚÉÏÃæµÄforÑ­»·ÖĞ£©
+            epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &ev);//ä¿®æ”¹sockfdä¸Šè¦å¤„ç†çš„äº‹ä»¶ä¸ºEPOLLOUTï¼Œè¿™å°†å¯¼è‡´æ•°æ®è¢«å‘å›å®¢æˆ·ç«¯ï¼ˆåœ¨ä¸Šé¢çš„forå¾ªç¯ä¸­ï¼‰
         } else if (n == 0) {
-            //¿Í»§¶Ë¹Ø±ÕÁË£¬Æä¶ÔÓ¦µÄÁ¬½ÓÌ×½Ó×Ö¿ÉÄÜÒ²±»±ê¼ÇÎªEPOLLIN£¬È»ºó·şÎñÆ÷È¥¶ÁÕâ¸öÌ×½Ó×Ö
-            //½á¹û·¢ÏÖ¶Á³öÀ´µÄÄÚÈİÎª0£¬¾ÍÖªµÀ¿Í»§¶Ë¹Ø±ÕÁË¡£
+            //å®¢æˆ·ç«¯å…³é—­äº†ï¼Œå…¶å¯¹åº”çš„è¿æ¥å¥—æ¥å­—å¯èƒ½ä¹Ÿè¢«æ ‡è®°ä¸ºEPOLLINï¼Œç„¶åæœåŠ¡å™¨å»è¯»è¿™ä¸ªå¥—æ¥å­—
+            //ç»“æœå‘ç°è¯»å‡ºæ¥çš„å†…å®¹ä¸º0ï¼Œå°±çŸ¥é“å®¢æˆ·ç«¯å…³é—­äº†ã€‚
             close(fd);
             printf("Client close connect!\n");
 
